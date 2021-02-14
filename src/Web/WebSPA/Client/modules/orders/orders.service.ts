@@ -1,5 +1,4 @@
 import { Injectable } from '@angular/core';
-import { Response } from '@angular/http';
 
 import { DataService } from '../shared/services/data.service';
 import { IOrder } from '../shared/models/order.model';
@@ -9,12 +8,8 @@ import { SecurityService } from '../shared/services/security.service';
 import { ConfigurationService } from '../shared/services/configuration.service';
 import { BasketWrapperService } from '../shared/services/basket.wrapper.service';
 
-import 'rxjs/Rx';
-import { Observable } from 'rxjs/Observable';
-import 'rxjs/add/observable/throw';
-import { Observer } from 'rxjs/Observer';
-import 'rxjs/add/operator/map';
-
+import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 @Injectable()
 export class OrdersService {
@@ -29,19 +24,19 @@ export class OrdersService {
     }
 
     getOrders(): Observable<IOrder[]> {
-        let url = this.ordersUrl + '/api/v1/o/orders';
+        let url = this.ordersUrl + '/o/api/v1/orders';
 
-        return this.service.get(url).map((response: Response) => {
-            return response.json();
-        });
+        return this.service.get(url).pipe<IOrder[]>(tap((response: any) => {
+            return response;
+        }));
     }
 
     getOrder(id: number): Observable<IOrderDetail> {
-        let url = this.ordersUrl + '/api/v1/o/orders/' + id;
+        let url = this.ordersUrl + '/o/api/v1/orders/' + id;
 
-        return this.service.get(url).map((response: Response) => {
-            return response.json();
-        });
+        return this.service.get(url).pipe<IOrderDetail>(tap((response: any) => {
+            return response;
+        }));
     }
 
     mapOrderAndIdentityInfoNewOrder(): IOrder {

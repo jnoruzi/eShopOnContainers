@@ -1,22 +1,20 @@
 ﻿import { Injectable } from '@angular/core';
 import { SecurityService } from './security.service';
 import { ConfigurationService } from './configuration.service';
-import { HubConnection, HttpConnection, TransportType } from '@aspnet/signalr';
-import { ToastsManager } from 'ng2-toastr/ng2-toastr';
+import { HubConnection, HubConnectionBuilder, LogLevel, HttpTransportType } from '@microsoft/signalr';
+import { ToastrService } from 'ngx-toastr';
 import { Subject } from 'rxjs';
 
 @Injectable()
 export class SignalrService {
-
     private _hubConnection: HubConnection;
-    private _httpConnection: HttpConnection;
     private SignalrHubUrl: string = '';
     private msgSignalrSource = new Subject();
     msgReceived$ = this.msgSignalrSource.asObservable();
 
     constructor(
         private securityService: SecurityService,
-        private configurationService: ConfigurationService, private toastr: ToastsManager,
+        private configurationService: ConfigurationService, private toastr: ToastrService,
     ) {
         if (this.configurationService.isReady) {
             this.SignalrHubUrl = this.configurationService.serverSettings.signalrHubUrl;
@@ -27,7 +25,7 @@ export class SignalrService {
                 this.SignalrHubUrl = this.configurationService.serverSettings.signalrHubUrl;
                 this.init();
             });
-        }            
+        }
     }
 
     public stop() {
@@ -38,16 +36,18 @@ export class SignalrService {
         if (this.securityService.IsAuthorized == true) {
             this.register();
             this.stablishConnection();
-            this.registerHandlers();            
-        }        
+            this.registerHandlers();
+        }
     }
 
     private register() {
-        this._httpConnection = new HttpConnection(this.SignalrHubUrl + '/hub/notificationhub', {
-            transport: TransportType.LongPolling,
-            accessTokenFactory: () => this.securityService.GetToken()
-        });
-        this._hubConnection = new HubConnection(this._httpConnection);
+        this._hubConnection = new HubConnectionBuilder()
+            .withUrl(this.SignalrHubUrl + '/hub/notificationhub', {
+                accessTokenFactory: () => this.securityService.GetToken()
+            })
+            .configureLogging(LogLevel.Information)
+            .withAutomaticReconnect()
+            .build();
     }
 
     private stablishConnection() {
@@ -62,9 +62,9 @@ export class SignalrService {
 
     private registerHandlers() {
         this._hubConnection.on('UpdatedOrderState', (msg) => {
+            console.log(`Order ${msg.orderId} updated to ${msg.status}`);
             this.toastr.success('Updated to status: ' + msg.status, 'Order Id: ' + msg.orderId);
             this.msgSignalrSource.next();
         });
     }
-
 }

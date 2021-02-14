@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
-namespace Microsoft.eShopOnContainers.WebMVC
+﻿namespace Microsoft.eShopOnContainers.WebMVC
 {
     public class AppSettings
     {
-        public Connectionstrings ConnectionStrings { get; set; }
+        //public Connectionstrings ConnectionStrings { get; set; }
         public string MarketingUrl { get; set; }
-
         public string PurchaseUrl { get; set; }
         public string SignalrHubUrl { get; set; }
         public bool ActivateCampaignDetailFunction { get; set; }
